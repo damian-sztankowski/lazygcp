@@ -1,0 +1,143 @@
+name: PR Checks, Security & Approval Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+jobs:
+  pr-governance:
+    name: 1. PR Title, Conventional Commit & Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR Branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Conventional Commit PR Title
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "Checking PR Title: $PR_TITLE"
+          if ! echo "$PR_TITLE" | grep -Eq '^(feat|fix|perf|refactor|docs|style|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?!?: .+'; then
+            echo "::error::PR title must follow Conventional Commits format (e.g., 'feat(tui): add IAP tunnel SSH selector' or 'fix(iam): handle empty bindings')."
+            exit 1
+          fi
+          echo "✅ PR title follows Conventional Commits standard."
+
+      - name: Scan Diff for Accidental Secrets or Private Keys
+        run: |
+          if git grep -I -E '(ghp_[A-Za-z0-9]{30,}|BEGIN (RSA|OPENSSH|EC|PRIVATE) KEY|AIza[0-9A-Za-z-_]{35})' -- ':!.github/workflows/*'; then
+            echo "::error::Potential credential or private key detected in repository files!"
+            exit 1
+          fi
+          echo "✅ Zero hardcoded credentials or private keys detected."
+
+  lint-and-vet:
+    name: 2. Go Format, Vet & Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Verify gofmt Formatting
+        run: |
+          UNFORMATTED=$(gofmt -s -l .)
+          if [ -n "$UNFORMATTED" ]; then
+            echo "::error::The following Go files are not formatted with 'gofmt -s':"
+            echo "$UNFORMATTED"
+            exit 1
+          fi
+          echo "✅ All Go source files are properly formatted."
+
+      - name: Run go vet
+        run: go vet ./...
+
+  unit-tests:
+    name: 3. Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run Unit Tests with Race Detector
+        run: go test -v -race ./...
+
+  cross-compile:
+    name: 4. Multi-Arch Release Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Verify 5-Target Cross-Compilation & CLI Smoke Test
+        run: |
+          make release-check
+          make build
+          ./lazygcp --version
+          ./lazygcp --help
+
+  approval-gate:
+    name: 5. Maintainer Review & Approval Gate
+    needs: [pr-governance, lint-and-vet, unit-tests, cross-compile]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate PR Review & Approval Status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "### 🛡️ lazygcp PR Quality & Approval Gate Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check Stage | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| :--- | :--- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **1. Conventional PR Title & Secret Scan** | ✅ Passed |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **2. Go Format (`gofmt -s`) & `go vet`** | ✅ Passed |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **3. Multi-OS Unit Tests (Linux, macOS, Windows)** | ✅ Passed |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **4. 5-Target Cross-Compile (`darwin`/`linux`/`windows`)** | ✅ Passed |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -n "$PR_NUMBER" ]; then
+            REVIEWS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUMBER/reviews" 2>/dev/null || echo "[]")
+            APPROVED_COUNT=$(echo "$REVIEWS_JSON" | grep -c '"state":"APPROVED"' || true)
+            CHANGES_REQ=$(echo "$REVIEWS_JSON" | grep -c '"state":"CHANGES_REQUESTED"' || true)
+
+            if [ "$CHANGES_REQ" -gt 0 ]; then
+              echo "| **5. Maintainer Approval Status** | ❌ Changes Requested |" >> "$GITHUB_STEP_SUMMARY"
+              echo "::error::Changes have been requested on PR #$PR_NUMBER. Please address review comments before merging."
+              exit 1
+            elif [ "$APPROVED_COUNT" -gt 0 ]; then
+              echo "| **5. Maintainer Approval Status** | ✅ Approved ($APPROVED_COUNT approval) — Ready to Merge & Release! |" >> "$GITHUB_STEP_SUMMARY"
+              echo "✅ PR #$PR_NUMBER is approved and ready to merge."
+            else
+              echo "| **5. Maintainer Approval Status** | ⏳ Awaiting Maintainer Approval (@damian-sztankowski) |" >> "$GITHUB_STEP_SUMMARY"
+              echo "::notice::All automated CI checks passed! Awaiting maintainer approval on PR #$PR_NUMBER before merge."
+            fi
+          fi

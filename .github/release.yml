@@ -1,0 +1,29 @@
+# Automated GitHub Release Notes Configuration for lazygcp
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+  categories:
+    - title: "🚀 Features & GCP Modules"
+      labels:
+        - enhancement
+        - feature
+    - title: "🛡️ Security, IAM & IAP"
+      labels:
+        - security
+        - iam
+    - title: "🐛 Bug Fixes & Terminal UX"
+      labels:
+        - bug
+        - fix
+    - title: "📖 Documentation & Demo"
+      labels:
+        - documentation
+        - docs
+    - title: "⚙️ CI/CD & Maintenance"
+      labels:
+        - ci-cd
+        - chore
+    - title: "📦 Other Changes"
+      labels:
+        - "*"

@@ -1,51 +1,54 @@
-name: CI
+name: CI — Build, Test & Verify
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-and-test:
-    name: Build, Vet & Test (${{ matrix.os }})
+  test-and-verify:
+    name: Test & Vet (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.22'
 
-      - name: Run go vet
+      - name: Verify go vet
         run: go vet ./...
 
-      - name: Run unit tests
-        run: go test -v ./...
+      - name: Run Unit Tests
+        run: go test -v -race ./...
 
-      - name: Build native binary
-        run: go build -ldflags="-s -w" -v .
+      - name: Build Native Binary & Smoke Test
+        run: |
+          go build -ldflags="-s -w" -o lazygcp_bin .
+          ./lazygcp_bin --version
+          ./lazygcp_bin --help
 
   cross-compile:
-    name: Cross-Compilation Matrix Check
+    name: Cross-Compile Matrix (darwin/linux/windows)
     runs-on: ubuntu-latest
+    needs: test-and-verify
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.22'
 
-      - name: Verify cross-compilation (darwin, linux, windows / amd64 & arm64)
+      - name: Run Multi-OS Release Check
         run: make release-check

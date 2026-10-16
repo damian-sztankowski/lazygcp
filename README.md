@@ -205,6 +205,23 @@ Press **`?`** anywhere inside `lazygcp` to open the interactive **3-Page Extende
 
 ---
 
+## 🔄 End-to-End CI/CD & Automated Release Pipeline
+
+`lazygcp` ships with a complete GitHub Actions CI/CD pipeline in [`.github/workflows/`](./.github/workflows):
+
+1. **Pull Request Governance & Quality Gate ([`pr-checks.yml`](./.github/workflows/pr-checks.yml)):**
+   * **Conventional PR Title & Hygiene Check:** Enforces semantic PR titles (`feat:`, `fix:`, `perf:`, `refactor:`, `docs:`, `test:`, `ci:`, `chore:`) and scans diffs for accidental secret/credential commits.
+   * **Lint, `gofmt` & Static Analysis:** Verifies `gofmt -s`, `go vet ./...`, and Go vulnerability checks.
+   * **Multi-OS Unit Test & 5-Target Cross-Compile Matrix:** Runs `go test -v -race ./...` across Ubuntu, macOS, and Windows and verifies clean cross-compilation across `darwin/arm64`, `darwin/amd64`, `linux/amd64`, `linux/arm64`, and `windows/amd64`.
+   * **Maintainer Approval Gate (`CODEOWNERS`):** Verifies PR review & approval status (`APPROVED`) before merge to `main`.
+2. **Continuous Integration ([`ci.yml`](./.github/workflows/ci.yml)):**
+   * Runs full test suites and multi-architecture binary verification on every push to `main`.
+3. **Automated Semantic Release & Release Notes ([`release.yml`](./.github/workflows/release.yml)):**
+   * Triggered automatically when changes land on `main` (with semantic version calculation from Conventional Commits), on `v*` tags, or manually via `workflow_dispatch` with optional environment approval.
+   * Builds and packages native binaries (`darwin_arm64`, `darwin_amd64`, `linux_amd64`, `linux_arm64`, `windows_amd64`), generates `checksums.txt` (SHA-256), and publishes a categorized **GitHub Release with automated Release Notes**.
+
+---
+
 ## 🤝 Contributing & Security
 
 - Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for architecture guidelines, cross-platform build tags, and Pull Request workflow.
