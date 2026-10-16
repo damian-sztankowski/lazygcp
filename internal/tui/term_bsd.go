@@ -53,6 +53,13 @@ type winsize struct {
 }
 
 func (a *App) updateTermSize() {
+	if cols, err := strconv.Atoi(os.Getenv("COLUMNS")); err == nil && cols >= 76 {
+		if lines, err2 := strconv.Atoi(os.Getenv("LINES")); err2 == nil && lines >= 18 {
+			a.Width = cols - 1
+			a.Height = lines
+			return
+		}
+	}
 	fds := []uintptr{os.Stdout.Fd(), os.Stdin.Fd(), os.Stderr.Fd()}
 	for _, fd := range fds {
 		var ws winsize
@@ -69,10 +76,5 @@ func (a *App) updateTermSize() {
 			return
 		}
 	}
-	if cols, err := strconv.Atoi(os.Getenv("COLUMNS")); err == nil && cols >= 76 {
-		a.Width = cols - 1
-	}
-	if lines, err := strconv.Atoi(os.Getenv("LINES")); err == nil && lines >= 18 {
-		a.Height = lines
-	}
 }
+

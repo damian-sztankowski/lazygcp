@@ -126,6 +126,40 @@ resource "google_cloud_run_v2_service" "checkout_payment_api" {
     }
   }
 }`,
+			ManifestYAML: `apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: checkout-payment-api
+  namespace: "104928192014"
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      name: checkout-payment-api-00042-bad
+      annotations:
+        autoscaling.knative.dev/minScale: "15"
+        autoscaling.knative.dev/maxScale: "250"
+        run.googleapis.com/cpu-throttling: "false"
+    spec:
+      containerConcurrency: 80
+      serviceAccountName: 104928192-compute@developer.gserviceaccount.com
+      containers:
+      - image: europe-west1-docker.pkg.dev/acme-fintech-prod-01/pay/api:v2.4.0
+        env:
+        - name: DB_MAX_CONNS
+          value: "50"
+        - name: STRIPE_LIVE_SECRET_KEY
+          value: "sk_live_51Nq92K... (PLAINTEXT LEAK!)"
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+  traffic:
+  - revisionName: checkout-payment-api-00042-bad
+    percent: 80
+  - revisionName: checkout-payment-api-00041-ok
+    percent: 20`,
 			GcloudCmd: "gcloud run services update-traffic checkout-payment-api --to-revisions=checkout-payment-api-00041-ok=100 --region=europe-west1",
 			Logs: []LogEntry{
 				{Timestamp: "17:09:51.102", Severity: "ERROR", Component: "rev-00042", Message: "FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300)", TraceID: "tr-99182a"},
@@ -133,7 +167,7 @@ resource "google_cloud_run_v2_service" "checkout_payment_api" {
 				{Timestamp: "17:09:54.008", Severity: "CRITICAL", Component: "run-http", Message: "POST /v1/checkout/charge 503 Service Unavailable (2844ms) - upstream timeout", TraceID: "tr-99184c"},
 				{Timestamp: "17:09:55.812", Severity: "INFO", Component: "rev-00041", Message: "POST /v1/checkout/charge 200 OK (41ms)", TraceID: "tr-99185d"},
 			},
-			AIInsight: "🤖 Gemini SRE Root-Cause Analysis:\n1. Revision 00042 raised DB_MAX_CONNS to 50 across 250 max instances (12,500 potential connections vs Cloud SQL max_connections=500). Press [r] to instant-rollback 100% traffic to rev-00041-ok.\n2. Plaintext STRIPE_LIVE_SECRET_KEY detected in container env. Press [t] to export Secret Manager HCL patch.\n3. Service uses Default Compute SA with roles/editor (6,842 perms, only 4 used). Press [z] for IAM-Zero surgical lockdown.",
+			AIInsight: "SRE Root-Cause & Remediation Guide:\n1. Revision 00042 raised DB_MAX_CONNS to 50 across 250 max instances (12,500 potential connections vs Cloud SQL max_connections=500). Press [r] to instant-rollback 100% traffic to rev-00041-ok.\n2. Plaintext STRIPE_LIVE_SECRET_KEY detected in container env. Press [t] to export Secret Manager HCL patch.\n3. Service uses Default Compute SA with roles/editor (6,842 perms, only 4 used). Press [z] for least-privilege surgical lockdown.",
 		},
 		{
 			ID:          "run-webhook-worker",

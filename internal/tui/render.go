@@ -39,7 +39,7 @@ func runeWidth(r rune) int {
 	}
 	if (r >= 0x1F300 && r <= 0x1FAFF) ||
 		(r >= 0x2600 && r <= 0x27BF) ||
-		(r >= 0x2300 && r <= 0x23FF) ||
+		(r >= 0x23E9 && r <= 0x23FA) ||
 		(r >= 0x2B00 && r <= 0x2BFF) ||
 		(r >= 0x3000 && r <= 0x9FFF) {
 		return 2
@@ -792,7 +792,7 @@ func (a *App) renderSSHModal(width, height int) []string {
 		fmt.Sprintf("  %sProject:%s %s  │  %sVPC Network:%s %s  │  %sNetwork:%s %s",
 			FgGray, Reset, proj, FgGray, Reset, vpc, FgGray, Reset, netExposure),
 		fmt.Sprintf("  %sIAP Posture:%s %s", FgGray, Reset, iapBadge),
-		FgGray + "  " + strings.Repeat("─", innerW) + Reset,
+		FgGray + "  " + strings.Repeat("─", maxInt(10, innerW-2)) + Reset,
 	}
 
 	if a.SSHModalPromptIAP {
@@ -817,7 +817,7 @@ func (a *App) renderSSHModal(width, height int) []string {
 			fmt.Sprintf("                                  --member=user:%s --role=roles/iap.tunnelResourceAccessor", acct),
 			fmt.Sprintf("    4. %sConnect via IAP Tunnel%s : $ gcloud compute ssh %s --zone=%s --project=%s --tunnel-through-iap", FgWhite+Bold, Reset, res.Name, res.Region, proj),
 			"",
-			FgGray+"  "+strings.Repeat("─", innerW)+Reset,
+			FgGray+"  "+strings.Repeat("─", maxInt(10, innerW-2))+Reset,
 			fmt.Sprintf("  Press %s[y / Enter]%s Configure IAP Best Practices & Connect │ %s[d]%s Use Direct SSH Instead │ %s[n / Esc]%s Back",
 				BgSuccess+FgGreen+Bold, Reset, FgCyan+Bold, Reset, BgAlert+FgRed+Bold, Reset),
 		)
@@ -864,7 +864,7 @@ func (a *App) renderSSHModal(width, height int) []string {
 	}
 
 	lines = append(lines, "")
-	lines = append(lines, FgGray+"  "+strings.Repeat("─", innerW)+Reset)
+	lines = append(lines, FgGray+"  "+strings.Repeat("─", maxInt(10, innerW-2))+Reset)
 	lines = append(lines, fmt.Sprintf("  Use %s↑/↓%s or press %s[1]%s Direct SSH │ %s[2]%s IAP Tunnel │ %s[3]%s Configure IAP Best Practices │ %s[Enter]%s Launch │ %s[Esc]%s Cancel",
 		FgYellow+Bold, Reset, FgCyan+Bold, Reset, FgGreen+Bold, Reset, FgYellow+Bold, Reset, BgSuccess+FgGreen+Bold, Reset, BgAlert+FgRed+Bold, Reset))
 
