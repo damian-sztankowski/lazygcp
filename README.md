@@ -14,7 +14,7 @@
 ---
 
 > **Stop waiting 15 seconds for the Google Cloud Console to load browser tabs or memorizing 60-character `gcloud` flags.**  
-> `lazygcp` brings the speed and muscle memory of `k9s` and `lazydocker` to **Google Cloud Platform**—initializing with a live animated telemetry radar and connecting directly to your `gcloud` project to give you **9 real-time operational modules**, an **embedded POSIX PTY & VT100 SSH terminal inside the TUI**, **live Project IAM & Security posture assessment**, **Cloud Billing API v1 burn-rate & waste analytics**, **1-key firewall quarantine**, and **1:1 state-accurate Reverse-Terraform HCL export**.
+> `lazygcp` brings the speed and muscle memory to **Google Cloud Platform**—initializing with a live animated telemetry radar and connecting directly to your `gcloud` project to give you **9 real-time operational modules**, an **embedded POSIX PTY & VT100 SSH terminal inside the TUI**, **live Project IAM & Security posture assessment**, **Cloud Billing API v1 burn-rate & waste analytics**, **1-key firewall quarantine**, and **1:1 state-accurate Reverse-Terraform HCL export**.
 
 ---
 
