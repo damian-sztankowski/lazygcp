@@ -4,17 +4,20 @@
   <p>
     <img src="https://img.shields.io/badge/Google%20Cloud-%234285F4.svg?style=for-the-badge&logo=google-cloud&logoColor=white" alt="Google Cloud" />
     <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go 1.22+" />
-    <img src="https://img.shields.io/badge/Inline%20PTY-VT100%20SSH-38BDF8?style=for-the-badge" alt="Inline PTY SSH" />
+    <img src="https://img.shields.io/badge/Inline%20PTY-SSH%20%26%20IAP%20Tunnel-38BDF8?style=for-the-badge" alt="Inline PTY SSH & IAP Tunnel" />
     <img src="https://img.shields.io/badge/Live%20IAM-Security%20Audit-10B981?style=for-the-badge" alt="Live IAM Security Audit" />
     <img src="https://img.shields.io/badge/Dependencies-Zero-F59E0B?style=for-the-badge" alt="Zero Dependencies" />
     <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge" alt="Apache 2.0 License" /></a>
+  </p>
+  <p>
+    <img src="./assets/lazygcp-demo.svg" alt="lazygcp Animated Terminal Cockpit Demo" width="100%" />
   </p>
 </div>
 
 ---
 
 > **Stop waiting 15 seconds for the Google Cloud Console to load browser tabs or memorizing 60-character `gcloud` flags.**  
-> `lazygcp` brings the speed and muscle memory to **Google Cloud Platform**—initializing with a live animated telemetry radar and connecting directly to your `gcloud` project to give you **9 real-time operational modules**, an **embedded POSIX PTY & VT100 SSH terminal inside the TUI**, **live Project IAM & Security posture assessment**, **Cloud Billing API v1 burn-rate & waste analytics**, **1-key firewall quarantine**, and **1:1 state-accurate Reverse-Terraform HCL export**.
+> `lazygcp` brings the speed and muscle memory of `k9s` and `lazydocker` to **Google Cloud Platform**—initializing with a live animated telemetry radar and connecting directly to your `gcloud` project to give you **9 real-time operational modules**, an **embedded POSIX PTY & VT100 SSH terminal (Direct SSH & Zero-Trust IAP Tunnel with 1-key IAP Best-Practices auto-setup)**, **live Project IAM & Security posture assessment**, **Cloud Billing API v1 burn-rate & waste analytics**, **1-key firewall quarantine**, and **1:1 state-accurate Reverse-Terraform HCL export**.
 
 ---
 
