@@ -21,8 +21,14 @@ test:
 	go vet ./...
 	go test -v ./...
 
-install:
+install: build
 	go install -ldflags="-s -w" .
+	@if [ -w /usr/local/bin ]; then \
+		cp $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME); \
+		echo "✅ Installed $(BINARY_NAME) to /usr/local/bin/$(BINARY_NAME)"; \
+	else \
+		sudo cp $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME) && echo "✅ Installed $(BINARY_NAME) to /usr/local/bin/$(BINARY_NAME)"; \
+	fi
 
 release-check:
 	GOOS=darwin GOARCH=arm64 go build -o /dev/null .

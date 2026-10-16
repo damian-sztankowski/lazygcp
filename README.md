@@ -73,19 +73,30 @@ flowchart LR
 
 `lazygcp` is engineered in **100% pure Go with zero external dependencies**—it compiles into a single native binary in under 1 second on macOS (`arm64` / `amd64`), Linux (`arm64` / `amd64`), and Windows (`amd64`).
 
-### Option A: Install via `go install`
+### Option A: 1-Line Install (macOS & Linux — Recommended)
+Downloads the latest prebuilt binary (or compiles natively with Go) and places `lazygcp` directly into `/usr/local/bin` so you can run `lazygcp` immediately from any terminal:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/damian-sztankowski/lazygcp/main/install.sh | sh
+```
+
+### Option B: Install via `go install`
 ```bash
 go install github.com/damian-sztankowski/lazygcp@latest
 ```
 
-### Option B: Build from Source
+> **macOS / `zsh` Tip:** `go install` places binaries in `$(go env GOPATH)/bin` (`~/go/bin`), which is not in macOS's default `$PATH`. If `zsh` says `command not found: lazygcp`, run this once to add `~/go/bin` to your `$PATH` (or symlink it into `/usr/local/bin`):
+> ```bash
+> echo 'export PATH="$PATH:$(go env GOPATH)/bin"' >> ~/.zshrc && source ~/.zshrc
+> # Or symlink into /usr/local/bin:
+> sudo ln -sf "$(go env GOPATH)/bin/lazygcp" /usr/local/bin/lazygcp
+> ```
+
+### Option C: Build & Install from Source
 ```bash
 git clone https://github.com/damian-sztankowski/lazygcp.git
 cd lazygcp
-make build
-
-# Optional: Install globally into your PATH
-sudo mv lazygcp /usr/local/bin/
+make install
 ```
 
 ### 1. Launch Live Interactive Cockpit (Default)
